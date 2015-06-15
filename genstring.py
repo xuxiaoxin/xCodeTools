@@ -11,16 +11,21 @@ import sys, os, localizable
 format_encoding = 'UTF-8'
 
 class GenString:
-    def __init__(self, path, base, dest):
+    def __init__(self, path, base, dest, filename=None):
         self.path = path
         self.base = base
         self.dest = dest
+        if filename == None:
+            self.filename = "Main.strings"
+        else:
+            self.filename = filename;
+        
         pass
     
     def gen(self):
-        basePath = os.path.join(self.path, self.base + '.lproj/Main.strings')
-        destPath = os.path.join(self.path, self.dest + '.lproj/Main.strings')
-        outPath  = os.path.join(self.path, self.dest + '.lproj/Main.out.strings')
+        basePath = os.path.join(self.path, self.base + '.lproj', self.filename)
+        destPath = os.path.join(self.path, self.dest + '.lproj', self.filename)
+        outPath  = os.path.join(self.path, self.dest + '.lproj', self.filename + '.txt')
         
         print 'Loading strings files ...'
         print basePath
@@ -28,8 +33,6 @@ class GenString:
         print destPath
         destLang = localizable.parse_strings(filename = destPath)
         print 'Done'
-        #print baseLang
-        #print destLang
         
         print 'Merging ...',
         
@@ -68,7 +71,7 @@ class GenString:
         
         fw = open(filePath, 'w+')
         for item in out:
-            content = u'\n/*' + item['comment'] + u'*/\n' + u'"' + item['key'] + u'" = "' + item['value'] + u'"\n'
+            content = u'\n/*' + item['comment'] + u'*/\n' + u'"' + item['key'] + u'" = "' + item['value'] + u'";\n'
             fw.write(content.encode(format_encoding))
         fw.close();
         return
@@ -79,10 +82,10 @@ class GenString:
 
 
 def usage():
-    print "Usage: "+sys.argv[0]+" <ProjectPath> <BaseLang> <DestinationLang>"
+    print "Usage: "+sys.argv[0]+"  <ProjectPath>  <BaseLang>  <DestinationLang>"
     print '*'*40
     print "      ProjectPath XCode Project path"
-    print "      BaseLang name aka. en"
+    print "      Base Lang name aka. en"
     print "      Destination Lang name aka. zh-Hans"
     print '*'*40
     sys.exit(0)
@@ -90,13 +93,19 @@ def usage():
     
 def main():
     
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 4:
         usage()
         
     project_path = sys.argv[1]
     base_lang = sys.argv[2]
     dest_lang = sys.argv[3]
-    g = GenString(project_path, base_lang, dest_lang);
+    
+    if len(sys.argv) >= 5:
+        strings_filename = sys.argv[4]
+    else:
+        strings_filename = None
+        
+    g = GenString(project_path, base_lang, dest_lang, strings_filename);
     g.gen()
 
     pass
